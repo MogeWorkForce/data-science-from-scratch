@@ -2,10 +2,9 @@
 from __future__ import absolute_import, unicode_literals, division
 
 import math
-import random
 from collections import Counter
 
-from ..chapter_4.vectors import sum_of_squares
+from ..chapter_4.vectors import sum_of_squares, dot
 
 
 def mean(items):
@@ -25,13 +24,21 @@ def median(items):
     middle_left = midpoint - 1
     middle_right = midpoint
 
-    return (middle_left + middle_right) / 2
+    return (items_sorted[middle_left] + items_sorted[middle_right]) / 2
 
 
 def quantile(items, percentile):
     """returns the pth-percentile value in x"""
     p_index = int(percentile * len(items))
     return sorted(items)[p_index]
+
+
+def first_quartile(items):
+    return quantile(items, 0.25)
+
+
+def third_quartile(items):
+    return quantile(items, 0.75)
 
 
 def mode(items):
@@ -65,4 +72,17 @@ def standard_deviation(x):
 
 
 def interquartile_range(x):
-    return quantile(x, 0.75) - quantile(x, 0.25)
+    return third_quartile(x) - first_quartile(x)
+
+
+def covariance(x, y):
+    n = len(x)
+    return dot(de_mean(x), de_mean(y)) / (n - 1)
+
+
+def correlation(x, y):
+    stdev_x = standard_deviation(x)
+    stdev_y = standard_deviation(y)
+    if stdev_x > 0 and stdev_y > 0:
+        return covariance(x, y) / stdev_x / stdev_y
+    return 0
