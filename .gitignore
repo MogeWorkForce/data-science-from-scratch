@@ -1,4 +1,9 @@
+# Other files in this project
 .idea
+*.tar.bz2
+easy_ham/
+hard_ham/
+spam/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

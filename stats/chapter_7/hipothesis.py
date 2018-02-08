@@ -132,7 +132,7 @@ if __name__ == "__main__":
     print(upper_p_value(526.5, mu_0, sigma_0))
     # print(lower_p_value)
 
-    random.seed(0)
+    random.seed(0, version=1)
     experiments = [run_experiment() for _ in range(1000)]
     num_rejections = len([experiment
                           for experiment in experiments
