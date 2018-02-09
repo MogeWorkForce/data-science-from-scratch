@@ -108,17 +108,16 @@ def in_random_order(data):
 
 def minimize_stochastic(target_fn, gradient_fn, x, y, theta_0,
                         alpha_0=0.01):
-    data = zip(x, y)
-    theta = theta_0
-    alpha = alpha_0
-    min_theta, min_value = None, float("inf")
+    data = list(zip(x, y))
+    theta = theta_0  # initial guess
+    alpha = alpha_0  # initial step size
+    min_theta, min_value = None, float("inf")  # the minimum so far
     iterations_with_no_improvement = 0
-    # initial guess
-    # initial step size
-    # the minimum so far
+
     # if we ever go 100 iterations with no improvement, stop
     while iterations_with_no_improvement < 100:
         value = sum(target_fn(x_i, y_i, theta) for x_i, y_i in data)
+
         if value < min_value:
             # if we've found a new minimum, remember it
             # and go back to the original step size
@@ -129,11 +128,13 @@ def minimize_stochastic(target_fn, gradient_fn, x, y, theta_0,
             # otherwise we're not improving, so try shrinking the step size
             iterations_with_no_improvement += 1
             alpha *= 0.9
+
         # and take a gradient step for each of the data points
         for x_i, y_i in in_random_order(data):
             gradient_i = gradient_fn(x_i, y_i, theta)
             theta = vector_subtract(theta,
                                     scalar_multiply(alpha, gradient_i))
+
     return min_theta
 
 
