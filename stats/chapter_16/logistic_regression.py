@@ -2,10 +2,14 @@
 from __future__ import absolute_import, unicode_literals, division
 
 import math
+import random
+from functools import partial, reduce
 from matplotlib import pyplot as plt
 
-from ..chapter_4.vectors import dot
+from ..chapter_4.vectors import dot, vector_add
+from ..chapter_8.gradient import maximize_batch, maximize_stochastic
 from ..chapter_10.rescaling import rescale
+from ..chapter_11.linear_regression import train_test_split
 from ..chapter_15.multiple_regression import estimate_beta, predict
 
 
@@ -22,6 +26,31 @@ def logistic_log_likelihood_i(x_i, y_i, beta):
         return math.log(logistic(dot(x_i, beta)))
     else:
         return math.log(1 - logistic(dot(x_i, beta)))
+
+
+def logistic_log_likelihood(x, y, beta):
+    return sum(logistic_log_likelihood_i(x_i, y_i, beta)
+               for x_i, y_i in zip(x, y))
+
+
+def logistic_log_partial_ij(x_i, y_i, beta, j):
+    """here i is the index of the data point,
+    j the index of the derivative"""
+
+    return (y_i - logistic(dot(x_i, beta))) * x_i[j]
+
+
+def logistic_log_gradient_i(x_i, y_i, beta):
+    """the gradient of the log likelihood
+    corresponding to the ith data point"""
+    return [logistic_log_partial_ij(x_i, y_i, beta, j)
+            for j, _ in enumerate(beta)]
+
+
+def logistic_log_gradient(x, y, beta):
+    return reduce(vector_add,
+                  [logistic_log_gradient_i(x_i, y_i, beta)
+                   for x_i, y_i in zip(x, y)])
 
 
 if __name__ == '__main__':
@@ -100,10 +129,57 @@ if __name__ == '__main__':
     print("linear regression:")
 
     rescaled_x = rescale(x)
-    print(rescaled_x)
+    # print(rescaled_x)
     beta = estimate_beta(rescaled_x, y)  # [0.26, 0.43, -0.43]
     predictions = [predict(x_i, beta) for x_i in rescaled_x]
     plt.scatter(predictions, y)
     plt.xlabel("predicted")
     plt.ylabel("actual")
+    # plt.show()
+
+    random.seed(0)
+
+    x_train, x_test, y_train, y_test = train_test_split(rescaled_x, y,
+                                                        0.33)
+    # want to maximize log likelihood on the training data
+    fn = partial(logistic_log_likelihood, x_train, y_train)
+    gradient_fn = partial(logistic_log_gradient, x_train, y_train)
+
+    # pick a random starting point
+    beta_0 = [random.random() for _ in range(3)]
+
+    # and maximize using gradient descent
+    beta_hat = maximize_batch(fn, gradient_fn, beta_0)
+
+    # Alternative way to calculate beta_hat with maximaze_stochastic
+    # beta_hat = maximize_stochastic(logistic_log_likelihood_i,
+    #                                logistic_log_gradient_i,
+    #                                x_train, y_train, beta_0)
+    print(beta_hat)
+
+    true_positives = false_positives = true_negatives = false_negatives = 0
+
+    for x_i, y_i in zip(x_test, y_test):
+        predict = logistic(dot(beta_hat, x_i))
+
+        if y_i == 1 and predict >= 0.5:  # TP: paid and we predict paid
+            true_positives += 1
+        elif y_i == 1:  # FN: paid and we predict unpaid
+            false_negatives += 1
+        elif predict >= 0.5:  # FP: unpaid and we predict paid
+            false_positives += 1
+        else:  # TN: unpaid and we predict unpaid
+            true_negatives += 1
+
+    precision = true_positives / (true_positives + false_positives)
+    recall = true_positives / (true_positives + false_negatives)
+
+    print("precision", precision)
+    print("recall", recall)
+
+    predictions = [logistic(dot(beta_hat, x_i)) for x_i in x_test]
+    plt.scatter(predictions, y_test)
+    plt.xlabel("predicted probability")
+    plt.ylabel("actual outcome")
+    plt.title("Logistic Regression Predicted vs. Actual")
     plt.show()
