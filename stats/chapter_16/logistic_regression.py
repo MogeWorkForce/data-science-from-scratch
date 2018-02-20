@@ -1,10 +1,27 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, division
 
+import math
 from matplotlib import pyplot as plt
 
+from ..chapter_4.vectors import dot
 from ..chapter_10.rescaling import rescale
 from ..chapter_15.multiple_regression import estimate_beta, predict
+
+
+def logistic(x):
+    return 1.0 / (1 + math.exp(-x))
+
+
+def logistic_prime(x):
+    return logistic(x) * (1 - logistic(x))
+
+
+def logistic_log_likelihood_i(x_i, y_i, beta):
+    if y_i == 1:
+        return math.log(logistic(dot(x_i, beta)))
+    else:
+        return math.log(1 - logistic(dot(x_i, beta)))
 
 
 if __name__ == '__main__':
