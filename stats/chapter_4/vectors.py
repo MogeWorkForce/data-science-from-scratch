@@ -70,6 +70,7 @@ def get_column(A, j):
 
 
 def make_matrix(num_rows, num_cols, entry_fn):
+    #make_matrix(n1, k2, partial(matrix_product_entry, A, B))
     """returns a num_rows x num_cols matrix
     whose (i,j)th entry is entry_fn(i, j)"""
     return [[entry_fn(i, j)  # given i, create a list
